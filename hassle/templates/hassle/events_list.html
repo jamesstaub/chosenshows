@@ -1,0 +1,15 @@
+<h1>events</h1>
+
+<form class="" action="{% url 'events:detail'  %}" method="post">
+  <button type="submit" name="button"> update saved events</button>
+  {% csrf_token %}
+</form>
+
+{% block content %}
+  {{event_list}}
+    <ul>
+        {% for event in event_list %}
+            <li>{{ event }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

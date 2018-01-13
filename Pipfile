@@ -9,7 +9,10 @@ verify_ssl = true
 django = "*"
 gunicorn = "*"
 django-heroku = "*"
+requests = "*"
 
+twilio = "*"
+pyOpenSSL = "*"
 
 [requires]
 

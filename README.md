@@ -1,8 +1,32 @@
-# Python: Getting Started
+# CHOSEN SHOWS SMS
 
-A barebones Django app, which can easily be deployed to Heroku.
+this is an sms app for discovering music and art events from the bostonhassle.com events calendar.
 
-This application supports the [Getting Started with Python on Heroku](https://devcenter.heroku.com/articles/getting-started-with-python) article - check it out.
+## first iteration
+user texts music, art, or film
+and receives an upcoming event listing.
+
+each received + replied message is saved, so new listings can be sent on subsequent messages from a user.
+
+### simple parsing
+string match `today, tonight, tomorrow, monday,` etc
+to create a date time to filter by
+
+
+wp-json api for tribe events calendar
+`http://bostonhassle.com/wp-json/tribe/events/v1/doc`
+
+
+
+
+
+
+
+
+to run and build, follow [heroku django tutorial](https://devcenter.heroku.com/articles/getting-started-with-)
+
+
+
 
 ## Running Locally
 
@@ -36,9 +60,3 @@ $ heroku open
 or
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
-
-## Documentation
-
-For more information about using Python on Heroku, see these Dev Center articles:
-
-- [Python on Heroku](https://devcenter.heroku.com/categories/python)
