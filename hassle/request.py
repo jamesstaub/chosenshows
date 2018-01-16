@@ -1,14 +1,38 @@
 import requests
 import json
+import urllib
+import logging
 
-def get_events():
+from hassle.parsers import parse_message_terms
+
+def render_response(sms_body, send_response_to):
+
+    search_terms = parse_message_terms(sms_body)
+    events = get_events(search_terms)
+
+    if events:
+        event = events[-1]
+    else:
+        print(events)
+
+    response_body = """
+        {} @ {} on {}
+    """.format(event['title'], event['venue'], event['start'])
+
+    return response_body
+
+
+def get_events(search_terms):
     """
     Request bostonhassle api
-    save event data
     """
 
     root = 'https://bostonhassle.com/wp-json'
-    endpoint = '/tribe/events/v1/events/'
+
+    if bool(search_terms):
+        start_date = search_terms['start_date'] if 'start_date' in search_terms
+        categories = search_terms['categories'] if 'categories' in search_terms
+    endpoint = '/tribe/events/v1/'
     url = '{}{}'.format(root, endpoint)
 
     try:
@@ -26,11 +50,11 @@ def get_events():
             } for e in events if 'venue' in e['venue']]
 
 
-        # else:
-            # handle error
-            # self.response.status_code = result.status_code
-    except:
-        print('Caught exception fetching url')
+        else:
+            handle error
+            self.response.status_code = result.status_code
+    except Exception as e:
+        logging.exception(e)
 
     return []
 
@@ -49,9 +73,13 @@ def search_tags(query):
 
 def search_events(query):
     root = 'https://bostonhassle.com/wp-json'
-    endpoint = '/tribe/events/v1/tags'
-    search = 'search={}'.format(query)
-    params = 'orderby=count&order=desc'
+    endpoint = '/tribe/events/v1/events'
+
+    params = urllib.parse.urlencode({
+        "categories": "chosen-shows",
+        "search": query,
+    })
+
     url = '{}{}?{}'.format(root, endpoint, params)
     r = requests.get(url)
 

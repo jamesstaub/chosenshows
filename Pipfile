@@ -10,9 +10,10 @@ django = "*"
 gunicorn = "*"
 django-heroku = "*"
 requests = "*"
-
 twilio = "*"
-pyOpenSSL = "*"
+pyopenssl = "*"
+dateparser = "*"
+
 
 [requires]
 

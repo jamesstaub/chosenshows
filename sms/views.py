@@ -6,14 +6,14 @@ from django.views.decorators.csrf import csrf_exempt
 from twilio.twiml.messaging_response import MessagingResponse
 
 from sms.models import Sms
-from hassle.parsers import respond_to_user
+from hassle.parsers import render_response
 
 
 @csrf_exempt
 def sms_endpoint(request):
     sms_to, sms_from, sms_body = parse_sms_received(request)
 
-    response_body = get_sms_response(sms_to, sms_from, sms_body)
+    response_body = create_sms_response(sms_to, sms_from, sms_body)
 
     # Start our TwiML response
     resp = MessagingResponse()
@@ -55,12 +55,12 @@ def parse_sms_received(request):
     return None, None, None,
 
 
-def get_sms_response(sms_to, sms_from, sms_body):
+def create_sms_response(sms_to, sms_from, sms_body):
 
     send_response_from = sms_to
     send_response_to = sms_from
 
-    response_body = respond_to_user(sms_body, send_response_to)
+    response_body = render_response(sms_body, send_response_to)
 
     # track messages in database
     Sms.objects.create(

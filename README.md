@@ -8,12 +8,18 @@ and receives an upcoming event listing.
 
 each received + replied message is saved, so new listings can be sent on subsequent messages from a user.
 
-### simple parsing
+### simple parsing scenarios
 string match `today, tonight, tomorrow, monday,` etc
 to create a date time to filter by
 
+> what's going on tonight?
 
-wp-json api for tribe events calendar
+> where is the *artist or event name* show?
+
+> electronic music
+
+
+wp-json api documentation for tribe events calendar
 `http://bostonhassle.com/wp-json/tribe/events/v1/doc`
 
 
