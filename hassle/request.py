@@ -6,57 +6,67 @@ import logging
 from hassle.parsers import parse_message_terms
 
 def render_response(sms_body, send_response_to):
+    if sms_body:
+        search_terms = parse_message_terms(sms_body)
+        events = search_events(search_terms)
 
-    search_terms = parse_message_terms(sms_body)
-    events = get_events(search_terms)
+    else:
+        events = search_events('music')
+
 
     if events:
-        event = events[-1]
-    else:
-        print(events)
+        event = events[0]
 
-    response_body = """
-        {} @ {} on {}
-    """.format(event['title'], event['venue'], event['start'])
+        response_body = """
+            {} @ {} on {}
+        """.format(event['title'], event['venue'], event['start'])
+
+    else:
+        response_body = 'couldnt find nothin'
 
     return response_body
 
 
-def get_events(search_terms):
-    """
-    Request bostonhassle api
-    """
-
-    root = 'https://bostonhassle.com/wp-json'
-
-    if bool(search_terms):
-        start_date = search_terms['start_date'] if 'start_date' in search_terms
-        categories = search_terms['categories'] if 'categories' in search_terms
-    endpoint = '/tribe/events/v1/'
-    url = '{}{}'.format(root, endpoint)
-
-    try:
-        result = requests.get(url)
-        if result.status_code == 200:
-
-            events = json.loads(result.text)['events']
-
-            return [{
-                "id": e['id'],
-                "title": e['title'],
-                "venue":e['venue']['venue'],
-                "start": e['start_date'],
-                "tags": [t['slug'] for t in e['tags']]
-            } for e in events if 'venue' in e['venue']]
-
-
-        else:
-            handle error
-            self.response.status_code = result.status_code
-    except Exception as e:
-        logging.exception(e)
-
-    return []
+# def get_events(search_terms):
+#     """
+#     Request bostonhassle api
+#     """
+#
+#     root = 'https://bostonhassle.com/wp-json'
+#
+#     if bool(search_terms):
+#         if 'start_date' in search_terms:
+#             start_date = search_terms['start_date']
+#         if 'categories' in search_terms:
+#             categories = search_terms['categories']
+#
+#     endpoint = '/tribe/events/v1/'
+#
+#     url = '{}{}'.format(root, endpoint)
+#
+#     try:
+#         response = requests.get(url)
+#         if response.status_code == 200:
+#
+#             events = json.loads(response.text)['events']
+#
+#             return [{
+#                 "id": e['id'],
+#                 "title": e['title'],
+#                 "venue":e['venue']['venue'],
+#                 "start": e['start_date'],
+#                 "tags": [t['slug'] for t in e['tags']]
+#             } for e in events if 'venue' in e['venue']]
+#
+#
+#         else:
+#             # handle error
+#             self.response.status_code = response.status_code
+#
+#     except Exception as e:
+#         logging.exception(e)
+#
+#     return []
 
 def search_tags(query):
     """
@@ -81,6 +91,27 @@ def search_events(query):
     })
 
     url = '{}{}?{}'.format(root, endpoint, params)
-    r = requests.get(url)
 
-    return r.json()
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+
+            events = json.loads(response.text)['events']
+
+            return [{
+                "id": e['id'],
+                "title": e['title'],
+                "venue":e['venue']['venue'],
+                "start": e['start_date'],
+                "tags": [t['slug'] for t in e['tags']]
+            } for e in events if 'venue' in e['venue']]
+
+
+        else:
+            # handle error
+            self.response.status_code = response.status_code
+
+    except Exception as e:
+        logging.exception(e)
+
+    return []

@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from twilio.twiml.messaging_response import MessagingResponse
 
 from sms.models import Sms
-from hassle.parsers import render_response
+from hassle.request import render_response
 
 
 @csrf_exempt

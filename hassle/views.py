@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from django.views.generic import ListView, DetailView
 # from django.views.generic import TemplateView
-from hassle.request import get_events
+# from hassle.request import get_events
 from hassle.models import Event
 
 class EventsDetail(DetailView):

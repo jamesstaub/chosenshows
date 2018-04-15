@@ -66,3 +66,15 @@ $ heroku open
 or
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+
+
+## additional feature ideas
+outbound notifications
+  - users opt to receive notifications when a show is added with a given tag
+  - a daily task runs to request shows from the hassle api,
+  - - save new events to this apps database and trigger sms notifications (and save users who have received notification about this show)
+
+
+users can login to a settings config page associated with their phone number to adjust their message settings
+- when to get notifications (day of, day before, week before)
+-
