@@ -41,7 +41,10 @@ class UserSmsProfile(models.Model):
     messages sent by and received by users
     """
     user = models.OneToOneField(User, related_name='user', null=True, on_delete=models.CASCADE)
-    sms_number = models.CharField(max_length=12, blank=True, default='')
+    sms_number = models.CharField(max_length=10, blank=True, default='')
+    event_tags = models.CharField(max_length=1000, blank=True, default='music')
+    get_notifications = models.BooleanField(default=False, max_length=1000, blank=True)
+
     sms_sent = models.ForeignKey(Sms, related_name='sent_by_user', verbose_name='SMS messages sent by user', blank=True, null=True, on_delete=models.CASCADE)
     sms_received = models.ForeignKey(Sms, related_name='received_by_user', verbose_name='SMS messages received by user', blank=True, null=True, on_delete=models.CASCADE)
 

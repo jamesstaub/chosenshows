@@ -15,26 +15,40 @@ def edit_user(request, pk):
     # prepopulate UserProfileForm with retrieved user values from above.
     user_form = UserForm(instance=user)
     # The sorcery begins from here, see explanation below
-    ProfileInlineFormset = inlineformset_factory(User, UserSmsProfile, fields=('sms_number',))
+    ProfileInlineFormset = inlineformset_factory(User, UserSmsProfile, fields=('event_tags', 'get_notifications'))
     formset = ProfileInlineFormset(instance=user)
 
     if request.user.is_authenticated and request.user.id == user.id:
+
+        user_sms_profile = UserSmsProfile.objects.get(user=user)
+
+        if user_sms_profile.sms_number:
+            user_sms_number = user_sms_profile.sms_number
+        else:
+            user_sms_number = None
+
         if request.method == "POST":
             user_form = UserForm(request.POST, request.FILES, instance=user)
             formset = ProfileInlineFormset(request.POST, request.FILES, instance=user)
 
             if user_form.is_valid():
-                created_user = user_form.save(commit=False)
-                formset = ProfileInlineFormset(request.POST, request.FILES, instance=created_user)
+
+                existing_user = User.objects.filter(username=user_form.user.username)
+                if existing_user.count():
+                    user_instance = existing_user.first()
+                else:
+                    user_instance = user_form.save(commit=False)
+
+                formset = ProfileInlineFormset(request.POST, request.FILES, instance=user_instance)
 
                 if formset.is_valid():
-                    created_user.save()
+                    user_instance.save()
                     formset.save()
-                    return HttpResponseRedirect('/accounts/profile/')
 
         return render(request, "accounts/account_update.html", {
-            "noodle": pk,
-            "noodle_form": user_form,
+            "user_sms_number": user_sms_number,
+            "user_pk": pk,
+            "user_form": user_form,
             "formset": formset,
         })
     else:
