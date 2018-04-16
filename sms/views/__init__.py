@@ -5,9 +5,9 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from twilio.twiml.messaging_response import MessagingResponse
 
-from sms.models import Sms
+from django.contrib.auth.models import User
+from sms.models import Sms, UserSmsProfile
 from hassle.request import render_response
-
 
 @csrf_exempt
 def sms_endpoint(request):
@@ -23,7 +23,6 @@ def sms_endpoint(request):
 
     # Add a picture message
     # msg.media("https://demo.twilio.com/owl.png")
-    print(resp)
     return HttpResponse(str(resp))
 
 
@@ -31,7 +30,7 @@ def parse_sms_received(request):
     """
     Parse and store SMS from Twilio.
 
-    Return message body and the number sms was sent to as a string of tuples
+    Return message body and the number sms was sent to as tuples
     """
 
     # parse sms request
@@ -55,6 +54,22 @@ def parse_sms_received(request):
     return None, None, None,
 
 
+def find_or_create_user(sms_from):
+
+    ## FIXME: for prototype only!
+    user, newly_created = User.objects.get_or_create(
+        username=sms_from,
+        password=sms_from,
+    )
+
+    user_sms_profile = UserSmsProfile.objects.get(user=user)
+
+    user_sms_profile.sms_number = sms_from
+    user_sms_profile.save()
+
+    return user, newly_created
+
+
 def create_sms_response(sms_to, sms_from, sms_body):
 
     send_response_from = sms_to
@@ -70,13 +85,3 @@ def create_sms_response(sms_to, sms_from, sms_body):
     )
 
     return response_body
-
-def find_or_create_user(sms_from):
-
-    ## FIXME: for prototype only!
-    user, newly_created = User.objects.get_or_create(
-        username=sms_from,
-        password=sms_from,
-    )
-
-    return user, newly_created

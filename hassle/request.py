@@ -3,12 +3,14 @@ import json
 import urllib
 import logging
 
-from hassle.parsers import parse_message_terms
+from hassle.parsers import ParseSms
 
 def render_response(sms_body, send_response_to):
     if sms_body:
-        search_terms = parse_message_terms(sms_body)
-        events = search_events(search_terms)
+
+        parsed_sms = ParseSms(sms_body)
+
+        events = search_events(parsed_sms.search_query)
 
     else:
         events = search_events('music')
@@ -82,6 +84,8 @@ def search_tags(query):
     return [t['slug'] for t in tags['tags']]
 
 def search_events(query):
+    # TODO: refactor to take date range arguments
+
     root = 'https://bostonhassle.com/wp-json'
     endpoint = '/tribe/events/v1/events'
 
@@ -108,8 +112,7 @@ def search_events(query):
 
 
         else:
-            # handle error
-            self.response.status_code = response.status_code
+            return []
 
     except Exception as e:
         logging.exception(e)

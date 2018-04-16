@@ -27,6 +27,7 @@ def edit_user(request, pk):
         else:
             user_sms_number = None
 
+        # TODO: refactor this to use PUT since it is only updating
         if request.method == "POST":
             user_form = UserForm(request.POST, request.FILES, instance=user)
             formset = ProfileInlineFormset(request.POST, request.FILES, instance=user)
