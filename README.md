@@ -1,6 +1,8 @@
 # CHOSEN SHOWS SMS
 
-this is an sms app for discovering music and art events from the bostonhassle.com events calendar.
+this is a work in progress sms app for discovering music and art events from the bostonhassle.com events calendar.
+
+
 
 ## first iteration
 user texts music, art, or film
@@ -27,10 +29,7 @@ wp-json api documentation for tribe events calendar
 
 
 
-
-
 to run and build, follow [heroku django tutorial](https://devcenter.heroku.com/articles/getting-started-with-)
-
 
 
 

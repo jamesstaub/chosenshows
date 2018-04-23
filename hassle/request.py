@@ -2,119 +2,134 @@ import requests
 import json
 import urllib
 import logging
+import datetime
+import dateparser
 
 from hassle.parsers import ParseSms
 
-def render_response(sms_body, send_response_to):
-    if sms_body:
+class EventResponse():
+    def __init__(self, sms_body, send_response_to):
+        search_params = self.get_search_params(sms_body)
+        self.events = self.search_events(**search_params)
+        self.response = self.get_response()
 
-        parsed_sms = ParseSms(sms_body)
-
-        events = search_events(parsed_sms.search_query)
-
-    else:
-        events = search_events('music')
-
-
-    if events:
-        event = events[0]
-
-        response_body = """
-            {} @ {} on {}
-        """.format(event['title'], event['venue'], event['start'])
-
-    else:
-        response_body = 'couldnt find nothin'
-
-    return response_body
+    # TODO:
+    # NLP compares event api results to users prompt
+    #     customize message if its not exactly what they aksed for
+    #     (ie if no shows on the date they want, show future shows)
+    #     check previous events sent to this user, dont send duplicates
 
 
-# def get_events(search_terms):
-#     """
-#     Request bostonhassle api
-#     """
-#
-#     root = 'https://bostonhassle.com/wp-json'
-#
-#     if bool(search_terms):
-#         if 'start_date' in search_terms:
-#             start_date = search_terms['start_date']
-#         if 'categories' in search_terms:
-#             categories = search_terms['categories']
-#
-#     endpoint = '/tribe/events/v1/'
-#
-#     url = '{}{}'.format(root, endpoint)
-#
-#     try:
-#         response = requests.get(url)
-#         if response.status_code == 200:
-#
-#             events = json.loads(response.text)['events']
-#
-#             return [{
-#                 "id": e['id'],
-#                 "title": e['title'],
-#                 "venue":e['venue']['venue'],
-#                 "start": e['start_date'],
-#                 "tags": [t['slug'] for t in e['tags']]
-#             } for e in events if 'venue' in e['venue']]
-#
-#
-#         else:
-#             # handle error
-#             self.response.status_code = response.status_code
-#
-#     except Exception as e:
-#         logging.exception(e)
-#
-#     return []
+    def get_search_params(self, sms_body):
 
-def search_tags(query):
-    """
-    returns a list of tag slugs matching search query
-    """
-    root = 'https://bostonhassle.com/wp-json'
-    endpoint = '/tribe/events/v1/tags?search={}'.format(query)
-    url = '{}{}'.format(root, endpoint)
-    response = requests.get(url)
-    tags = json.loads(response.content.decode('utf-8'))
+        if sms_body:
 
-    # return tags
-    return [t['slug'] for t in tags['tags']]
+            parsed_sms = ParseSms(sms_body)
 
-def search_events(query):
-    # TODO: refactor to take date range arguments
+            if parsed_sms.date:
+                date_range = parsed_sms.date
+                start_date = date_range[0]
+            else:
+                start_date = datetime.datetime.now()
 
-    root = 'https://bostonhassle.com/wp-json'
-    endpoint = '/tribe/events/v1/events'
+            search_parameters = {"start_date": start_date.strftime("%Y-%m-%d")}
 
-    params = urllib.parse.urlencode({
-        "categories": "chosen-shows",
-        "search": query,
-    })
-
-    url = '{}{}?{}'.format(root, endpoint, params)
-
-    try:
-        response = requests.get(url)
-        if response.status_code == 200:
-
-            events = json.loads(response.text)['events']
-
-            return [{
-                "id": e['id'],
-                "title": e['title'],
-                "venue":e['venue']['venue'],
-                "start": e['start_date'],
-                "tags": [t['slug'] for t in e['tags']]
-            } for e in events if 'venue' in e['venue']]
-
+            categories = parsed_sms.categories or "hassle-shows"
+            search_parameters.update({"categories": categories})
 
         else:
-            return []
+            search_parameters = {"categories": "hassle-shows"}
 
-    except Exception as e:
-        logging.exception(e)
+        return search_parameters
 
-    return []
+
+    def get_response(self):
+
+        if self.events:
+            self.events.sort(key=lambda tup: tup['start'])
+
+            self.events = [self.format_events(event) for event in self.events]
+
+            return  " | ".join(self.events)
+
+        else:
+            return 'couldnt find nothin'
+
+
+
+    def filter_event_results(self, send_response_to):
+        """
+        Remove events from api response if they are from before today
+        or if the recipient has already been notified of them
+        """
+
+        cutoff = datetime.datetime.today() - datetime.timedelta(hours=8)
+        user = UserSmsProfile.objects.get(sms_number=send_response_to)
+
+        # TODO: add a model for events, create association with SMS model
+        # then check here if user has already received SMS containing these events
+        self.events = [e for e in self.events if dateparser.parse(e['start']) > cutoff]
+
+
+    def format_events(self, event):
+        """
+        validates that an event is not in the past,
+        then formats text for sms response
+        """
+        date = dateparser.parse(event['start']).strftime('%m/%d')
+        title = event['title']
+        venue = event['venue']
+        id = event['id']
+
+        return u"""
+            {} @ {} on {}
+        """.format(date, title, venue)
+
+
+    def search_events(self, **kwargs):
+
+        root = 'https://bostonhassle.com/wp-json'
+        endpoint = '/tribe/events/v1/events'
+
+        # update params with other kwargs like start_date
+        if kwargs is not None:
+            params = urllib.parse.urlencode(kwargs)
+
+        url = '{}{}?{}'.format(root, endpoint, params)
+
+        try:
+            response = requests.get(url)
+            if response.status_code == 200:
+
+                events = json.loads(response.text)['events']
+
+                return [{
+                    "id": e['id'],
+                    "title": e['title'],
+                    "venue":e['venue']['venue'],
+                    "start": e['start_date'],
+                    "tags": [t['slug'] for t in e['tags']]
+                } for e in events if 'venue' in e['venue']]
+
+
+            else:
+                return []
+
+        except Exception as e:
+            logging.exception(e)
+
+        return []
+
+
+    # def search_tags(query):
+    #     """
+    #     returns a list of tag slugs matching search query
+    #     """
+    #     root = 'https://bostonhassle.com/wp-json'
+    #     endpoint = '/tribe/events/v1/tags?search={}'.format(query)
+    #     url = '{}{}'.format(root, endpoint)
+    #     response = requests.get(url)
+    #     tags = json.loads(response.content.decode('utf-8'))
+    #
+    #     # return tags
+    #     return [t['slug'] for t in tags['tags']]

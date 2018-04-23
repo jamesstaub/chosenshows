@@ -16,7 +16,7 @@ class Sms(models.Model):
     sms_to = models.CharField(blank=True, null=True, max_length=20)
     sms_from = models.CharField(blank=True, null=True, max_length=20)
     created = models.DateTimeField()
-
+    
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''
 

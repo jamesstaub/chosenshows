@@ -16,7 +16,7 @@ class ParseSms:
 
         self.remove_salutations()
 
-        self.date_reference = self.get_date()
+        self.date = self.get_date()
 
         self.categories = self.get_categories()
 
@@ -55,6 +55,7 @@ class ParseSms:
         """
         find references to relative or absolute dates in the text
         also remove the date references from self.tokens
+        returns 2d list of start_date, end_date
         """
 
         today = self.today
@@ -62,11 +63,13 @@ class ParseSms:
 
         tokens = self.tokens
 
+        parse_past = {'PREFER_DATES_FROM': 'past', 'TIMEZONE': 'US/Eastern'}
+        parse_future = {'PREFER_DATES_FROM': 'future', 'TIMEZONE': 'US/Eastern'}
+
         # convert tokens to  [[parsed_date, token]...]
         # the date elements are used for search date range, the tokens are used to remove
         # from them from search tems
-        date_tokens = [[dateparser.parse(t, settings={'PREFER_DATES_FROM': 'future'}), t] for t in tokens]
-
+        date_tokens = [[dateparser.parse(t, settings=parse_future), t] for t in tokens]
         # remove tokens with no mention of dates
         date_tokens = [d for d in date_tokens if d[0]]
 
@@ -74,7 +77,7 @@ class ParseSms:
         if not date_tokens:
             if 'tonight' in tokens:
                 # TODO: add filter for time
-                search_date = dateparser.parse('today', settings={'PREFER_DATES_FROM': 'future'})
+                search_date = dateparser.parse('today', settings=parse_past)
                 date_tokens = [[search_date, 'tonight']]
 
             if 'this weekend' in self.bigrams:
@@ -84,19 +87,19 @@ class ParseSms:
 
                 else:
                     # if it's not yet the weekend
-                    start_date = dateparser.parse('friday', settings={'PREFER_DATES_FROM': 'future'})
+                    start_date = dateparser.parse('friday', settings=parse_future)
 
-                end_date = dateparser.parse('sunday', settings={'PREFER_DATES_FROM': 'future'})
+                end_date = dateparser.parse('sunday', settings=parse_future)
                 date_tokens = [[start_date, 'this weekend'], [end_date, '']]
 
             if 'this week' in self.bigrams:
-                start_date = dateparser.parse('today', settings={'PREFER_DATES_FROM': 'future'})
-                end_date = dateparser.parse('saturday', settings={'PREFER_DATES_FROM': 'future'})
+                start_date = dateparser.parse('today', settings=parse_future)
+                end_date = dateparser.parse('saturday', settings=parse_future)
                 date_tokens = [[start_date, 'this week'], [end_date, '']]
 
             # TODO:
             # if 'this month' in self.bigrams:
-            #     start_date = dateparser.parse('today', settings={'PREFER_DATES_FROM': 'future'})
+            #     start_date = dateparser.parse('today', settings=parse_future)
             #     last_day_of_month =
             #     date_tokens = [[start_date, 'this month'], [last_day_of_month, '']]
 
@@ -122,13 +125,23 @@ class ParseSms:
     def get_search_terms(self):
         """
         return words to use as event search query
-        by this point self.tokens has been normalized and
+        by this point self.tokens and self.bigrams has been normalized and
         filtered to remove dates and salutations
+
+        self.bigrams and self.tokens may have removed different words
         """
-        clean_search_string = ' '.join(self.tokens)
+        # convert list of bigrams to a 1d list of words
+        # [(what, is), (is, up), (up, tonight)] -> [what is up tonight]
+        if self.bigrams:
 
+            from_bigram = [b[0] for b in self.bigrams if b] + [self.bigrams[-1][1]]
+            clean_tokens = [t for t in from_bigram if t and t in self.tokens]
+        else:
+            clean_tokens = self.tokens
+
+        # (with salutations removed)
+        clean_search_string = ' '.join(clean_tokens)
         # do other cleaning / NLP here
-
         return clean_search_string
 
 

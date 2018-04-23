@@ -7,11 +7,11 @@ from twilio.twiml.messaging_response import MessagingResponse
 
 from django.contrib.auth.models import User
 from sms.models import Sms, UserSmsProfile
-from hassle.request import render_response
+from hassle.request import EventResponse
 
 @csrf_exempt
 def sms_endpoint(request):
-    sms_to, sms_from, sms_body = parse_sms_received(request)
+    sms_to, sms_from, sms_body = save_sms_received(request)
 
     response_body = create_sms_response(sms_to, sms_from, sms_body)
 
@@ -26,7 +26,7 @@ def sms_endpoint(request):
     return HttpResponse(str(resp))
 
 
-def parse_sms_received(request):
+def save_sms_received(request):
     """
     Parse and store SMS from Twilio.
 
@@ -75,8 +75,9 @@ def create_sms_response(sms_to, sms_from, sms_body):
     send_response_from = sms_to
     send_response_to = sms_from
 
-    response_body = render_response(sms_body, send_response_to)
-
+    response_data = EventResponse(sms_body, send_response_to)
+    # response_body = parse_and_respond(sms_body, send_response_to)
+    response_body = response_data.response
     # track messages in database
     Sms.objects.create(
         sms_to = send_response_to,

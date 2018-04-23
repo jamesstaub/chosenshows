@@ -15,7 +15,6 @@ class EventsDetail(DetailView):
     template_name = 'hassle/index.html'
 
     def post(self, request, *args, **kwargs):
-        print(get_events())
         return HttpResponse(status=201)
 
 class EventsList(ListView):
