@@ -69,7 +69,7 @@ class EventResponse():
         # TODO: add a model for events, create association with SMS model
         # then check here if user has already received SMS containing these events
         self.events = [e for e in self.events if dateparser.parse(e['start']) > cutoff]
-
+        self.events[:2]
 
     def format_events(self, event):
         """

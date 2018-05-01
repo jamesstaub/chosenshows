@@ -28,6 +28,7 @@ import hassle.views
 urlpatterns = [
     url(r'^$', hello.views.index, name='index'),
     url(r'^db', hello.views.db, name='db'),
+    url(r'^api/', hello.views.query_sms_response, name='query_sms_response'),
     path('admin/', admin.site.urls),
     url(r'^sms/', include('sms.urls')),
     url(r'^hassle/', include('hassle.urls')),

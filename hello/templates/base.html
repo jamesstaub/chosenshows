@@ -1,31 +1,77 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<title>Boston Hassle Shows SMS Bot</title>
+  <title>Boston Hassle Shows SMS Bot</title>
   <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" />
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
   <script type="text/javascript" src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+  <script type="text/javascript">
+//   function getCookie(name) {
+//   if (!document.cookie) {
+//     return null;
+//   }
+//
+//   var xsrfCookies = document.cookie
+//     .split(';')
+//     .map(function(c) {
+//       return c.trim();
+//     })
+//     .filter(function(c) {
+//       return c.startsWith(name);
+//     });
+//
+//   if (xsrfCookies.length === 0) {
+//     return null;
+//   }
+//   return decodeURIComponent(xsrfCookies[0].split('=')[1]);
+// }
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function postSmsQuery() {
+  var csrfToken = getCookie('csrftoken');
+
+  fetch('/api/', {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "X-CSRFToken": getCookie("csrftoken"),
+          "Accept": "application/json",
+          'Content-Type': 'application/json'
+        },
+        body:JSON.stringify('query')
+      }).then(function(response) {
+        console.log(response);
+  });
+}
+</script>
   <style type="text/css">
     .jumbotron {
-        background: #222;
-        color: #666;
-        padding-bottom: 80px
+      background: #222;
+      color: #666;
+      padding-bottom: 80px
     }
-
   </style>
 </head>
-<body>
-<nav class="navbar navbar-default navbar-static-top navbar-inverse">
-  <div class="container">
-    <ul class="nav navbar-nav navbar-right">
-      <li class="navbar-right">
-        <a href="https://bostonhassle.com">boston hassle</a>
-      </li>
-    </ul>
-  </div>
-</nav>
 
-{% block content %}{% endblock %}
+<body>
+
+  {% block content %}{% endblock %}
 
 </body>
+
 </html>
