@@ -1,3 +1,4 @@
+import html
 import requests
 import json
 import urllib
@@ -6,12 +7,25 @@ import datetime
 import dateparser
 
 from hassle.parsers import ParseSms
+from sms.models import UserSmsProfile
 
 class EventResponse():
-    def __init__(self, sms_body, send_response_to):
+    """
+    initialize with an input query,
+    handles searching for and formatting events
+    """
+
+    def __init__(self, sms_body, send_response_to, limit=None):
         search_params = self.get_search_params(sms_body)
         self.events = self.search_events(**search_params)
-        self.response = self.get_response()
+
+        if self.events:
+            self.events = self.filter_event_results(self.events)
+            self.formatted_events = self.get_formatted_events(limit=limit)
+            self.response = " | ".join(self.formatted_events)
+        else:
+            self.formatted_events = []
+            self.response = "cant find anything right now"
 
     # TODO:
     # NLP compares event api results to users prompt
@@ -43,33 +57,36 @@ class EventResponse():
         return search_parameters
 
 
-    def get_response(self):
+    def get_formatted_events(self, limit=None):
+        """
+        Returns a tuple of a string containing concatenated event info,
+        and a list of event ids
+        """
 
-        if self.events:
-            self.events.sort(key=lambda tup: tup['start'])
+        self.events.sort(key=lambda tup: tup['start'])
 
-            self.events = [self.format_events(event) for event in self.events]
+        formatted_events = [self.format_events(event) for event in self.events]
 
-            return  " | ".join(self.events)
-
+        if limit:
+            return formatted_events[:limit]
         else:
-            return 'couldnt find nothin'
+            return formatted_events
 
 
 
-    def filter_event_results(self, send_response_to):
+    def filter_event_results(self, events, send_response_to=None):
         """
         Remove events from api response if they are from before today
         or if the recipient has already been notified of them
         """
 
         cutoff = datetime.datetime.today() - datetime.timedelta(hours=8)
-        user = UserSmsProfile.objects.get(sms_number=send_response_to)
+        # user = UserSmsProfile.objects.get(sms_number=send_response_to)
 
         # TODO: add a model for events, create association with SMS model
         # then check here if user has already received SMS containing these events
-        self.events = [e for e in self.events if dateparser.parse(e['start']) > cutoff]
-        self.events[:2]
+        return [e for e in events if dateparser.parse(e['start']) > cutoff]
+
 
     def format_events(self, event):
         """
@@ -81,9 +98,12 @@ class EventResponse():
         venue = event['venue']
         id = event['id']
 
-        return u"""
+        formatted = u"""
             {} @ {} on {}
         """.format(date, title, venue)
+
+        return html.unescape(formatted)
+
 
 
     def search_events(self, **kwargs):

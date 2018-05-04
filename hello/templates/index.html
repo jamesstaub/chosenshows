@@ -9,11 +9,13 @@
     <h2>347-4-HASSLE
       <p>(347-442-7753)</p>
     </h3>
-    <form class=""  method="post">
-      <!-- {% csrf_token %} -->
+    <form onsubmit="return onSubmit(this)">
       <input type="text" name="" value="">
-      <button type="button"  onclick="postSmsQuery();">ASK</button>
-  </form>
+      <button type="submit">ASK</button>
+    </form>
+    <div class='container'>
+      <p id='sms-results'></p>
+    </div>
   </div>
 </div>
 <div class="container">

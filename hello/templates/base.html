@@ -42,7 +42,20 @@ function getCookie(name) {
     return cookieValue;
 }
 
-function postSmsQuery() {
+function onSubmit(form) {
+  var query = form.children[0].value;
+  postSmsQuery(query);
+  return false;
+}
+
+function renderResults(response) {
+  response.json().then(function(data) {
+    var containerEl = document.getElementById('sms-results');
+    containerEl.textContent = data.sms;
+  })
+}
+
+function postSmsQuery(query) {
   var csrfToken = getCookie('csrftoken');
 
   fetch('/api/', {
@@ -53,9 +66,9 @@ function postSmsQuery() {
           "Accept": "application/json",
           'Content-Type': 'application/json'
         },
-        body:JSON.stringify('query')
+        body:JSON.stringify({query: query})
       }).then(function(response) {
-        console.log(response);
+        renderResults(response);
   });
 }
 </script>
