@@ -22,9 +22,11 @@ class EventResponse():
         if self.events:
             self.events = self.filter_event_results(self.events)
             self.formatted_events = self.get_formatted_events(limit=limit)
+            self.images = self.get_event_images(self.events, limit=limit)
             self.response = " | ".join(self.formatted_events)
         else:
             self.formatted_events = []
+            self.images = []
             self.response = "cant find anything right now"
 
     # TODO:
@@ -67,10 +69,7 @@ class EventResponse():
 
         formatted_events = [self.format_events(event) for event in self.events]
 
-        if limit:
-            return formatted_events[:limit]
-        else:
-            return formatted_events
+        return formatted_events[:limit]
 
 
 
@@ -105,7 +104,6 @@ class EventResponse():
         return html.unescape(formatted)
 
 
-
     def search_events(self, **kwargs):
 
         root = 'https://bostonhassle.com/wp-json'
@@ -128,6 +126,7 @@ class EventResponse():
                     "title": e['title'],
                     "venue":e['venue']['venue'],
                     "start": e['start_date'],
+                    "img": e['image']['sizes']['medium'],
                     "tags": [t['slug'] for t in e['tags']]
                 } for e in events if 'venue' in e['venue']]
 
@@ -139,6 +138,12 @@ class EventResponse():
             logging.exception(e)
 
         return []
+
+    def get_event_images(self, events, limit):
+        """
+        returns a sorted list of images corresponding to self.events
+        """
+        return [e["img"] for e in events][:limit]
 
 
     # def search_tags(query):

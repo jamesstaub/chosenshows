@@ -21,11 +21,11 @@ def index(request):
 def query_sms_response(request):
     # try:
     query = json.loads(request.body)['query']
-    response_data = EventResponse(query, None, 2)
-    response_dict = {"sms": response_data.response}
+    response_data = EventResponse(query, None, 1)
+    response_dict = {"message": response_data.response, "images": response_data.images}
 
     # except:
-    #     response_dict = {"sms": 'something went terribly wrong...'}
+    #     response_dict = {"message": 'something went terribly wrong...'}
 
     response = json.dumps(response_dict)
     return HttpResponse(response)

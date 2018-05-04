@@ -5,16 +5,17 @@
 
 <div class="jumbotron text-center">
   <div class="container">
-    <h1>chosen shows SMS bot</h1>
-    <h2>347-4-HASSLE
+    <h2>
+      <span>347-4-HASSLE</span>
       <p>(347-442-7753)</p>
-    </h3>
-    <form onsubmit="return onSubmit(this)">
-      <input type="text" name="" value="">
-      <button type="submit">ASK</button>
+    </h2>
+    <form class="form-inline" onsubmit="return onSubmit(this)">
+      <input class="form-control form-control-lg" type="text" placeholder="techno shows tonight?">
+      <button  class="btn btn-primary" type="submit">ASK</button>
     </form>
-    <div class='container'>
-      <p id='sms-results'></p>
+    <div class='results-container'>
+      <div id='img-results'></div>
+      <p id='message-results'></p>
     </div>
   </div>
 </div>

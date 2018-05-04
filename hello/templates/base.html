@@ -48,35 +48,61 @@ function onSubmit(form) {
   return false;
 }
 
-function renderResults(response) {
+function renderResults(response, msgContainerEl, imgContainerEl) {
   response.json().then(function(data) {
-    var containerEl = document.getElementById('sms-results');
-    containerEl.textContent = data.sms;
+    msgContainerEl.className = '';
+    msgContainerEl.textContent = data.message;
+
+    var imageTags = data.images.forEach(function(url){
+      var tag =  document.createElement('img');
+
+      tag.src = url.url;
+      imgContainerEl.appendChild(tag)
+    });
   })
 }
 
 function postSmsQuery(query) {
   var csrfToken = getCookie('csrftoken');
+  var msgContainerEl = document.getElementById('message-results');
+  var imgContainerEl = document.getElementById('img-results');
+
+  msgContainerEl.className = 'is-loading';
+  msgContainerEl.textContent = '';
+  imgContainerEl.textContent = '';
 
   fetch('/api/', {
-        method: "POST",
-        credentials: "same-origin",
-        headers: {
-          "X-CSRFToken": getCookie("csrftoken"),
-          "Accept": "application/json",
-          'Content-Type': 'application/json'
-        },
-        body:JSON.stringify({query: query})
-      }).then(function(response) {
-        renderResults(response);
+    method: "POST",
+    credentials: "same-origin",
+    headers: {
+      "X-CSRFToken": getCookie("csrftoken"),
+      "Accept": "application/json",
+      'Content-Type': 'application/json'
+    },
+    body:JSON.stringify({query: query})
+  }).then(function(response) {
+    renderResults(response, msgContainerEl, imgContainerEl);
   });
 }
 </script>
   <style type="text/css">
+
+    form {
+      padding: 20px 0;
+    }
+
     .jumbotron {
       background: #222;
-      color: #666;
+      color: #ccc;
       padding-bottom: 80px
+    }
+
+    .is-loading:after {
+      content: '... don\'t hassle me, i\'m loading ...';
+      color: #EE5555;
+    }
+    .results-container {
+      padding: 20px 0;
     }
   </style>
 </head>
