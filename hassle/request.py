@@ -19,23 +19,24 @@ class EventResponse():
 
     def __init__(self, sms_body, send_response_to, limit=None):
 
-        if sms_body:
-            parsed_sms = ParseSms(sms_body)
+        sms_body = sms_body or 'music tonight'
 
-            event_search_params = self.get_search_params(parsed_sms)
+        parsed_sms = ParseSms(sms_body)
 
-            self.events = self.search_events(**event_search_params)
-            tags = self.search_tags(parsed_sms.search_query)
+        event_search_params = self.get_search_params(parsed_sms)
 
-            if self.events:
-                self.events = self.filter_event_results(self.events, tags)
-                self.formatted_events = self.get_formatted_events(limit=limit)
-                self.images = self.get_event_images(self.events, limit=limit)
-                self.response = " | ".join(self.formatted_events)
-            else:
-                self.formatted_events = []
-                self.images = []
-                self.response = "cant find anything right now"
+        self.events = self.search_events(**event_search_params)
+        tags = self.search_tags(parsed_sms.search_query)
+
+        if self.events:
+            self.events = self.filter_event_results(self.events, tags)
+            self.formatted_events = self.get_formatted_events(limit=limit)
+            self.images = self.get_event_images(self.events, limit=limit)
+            self.response = " | ".join(self.formatted_events)
+        else:
+            self.formatted_events = []
+            self.images = []
+            self.response = "cant find anything right now"
 
     # TODO:
 
