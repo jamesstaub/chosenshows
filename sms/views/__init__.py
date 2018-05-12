@@ -79,7 +79,7 @@ def create_sms_response(sms_to, sms_from, sms_body):
     send_response_to = sms_from
 
     response_data = EventResponse(sms_body, send_response_to, 1)
-    # response_body = parse_and_respond(sms_body, send_response_to)
+
     response_body = response_data.response
     # track messages in database
     Sms.objects.create(

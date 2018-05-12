@@ -38,6 +38,11 @@ class EventResponse():
                 self.response = "cant find anything right now"
 
     # TODO:
+
+    # if found matching tags, but no upcoming shows
+     # update user message to explain results
+     # look for past events matching tag, then search for a music/art/film
+
     # NLP compares event api results to users prompt
     #     customize message if its not exactly what they aksed for
     #     (ie if no shows on the date they want, show future shows)
@@ -62,6 +67,9 @@ class EventResponse():
 
         if parsed_sms.categories:
             search_parameters.update({"categories": parsed_sms.categories})
+
+        if parsed_sms.search_query:
+            search_parameters.update({"search": parsed_sms.search_query})
 
         return search_parameters
 
@@ -98,18 +106,16 @@ class EventResponse():
         if tags:
             # comapre tag words on each event with tags that were found by the same search query
             tag_match_events = []
-            events_tags = [[idx, [t.split('-') for t in e['tags']]] for idx, e in enumerate(events)]
+            events_tags = [[idx, [' '.join(t.split('-')) for t in e['tags']]] for idx, e in enumerate(events)]
 
             for event_tag in events_tags:
                 event_index = event_tag[0]
-                # flatten 2d list of tag words
-                event_tags = list(chain.from_iterable( event_tag[1]))
+                event_tags = event_tag[1]
                 # find intersection of this event's tags and the tag results
                 matched_tags = list(set(event_tags).intersection(tags))
 
                 if matched_tags:
                     tag_match_events.append(event_index)
-
 
             if tag_match_events:
                 # if we found events whose tags also match the tag filter_event_results
@@ -119,15 +125,12 @@ class EventResponse():
                 print("""TAGS ON FOUND EVENTS: {}
 
                 """.format(events_tags))
-                print("""TAG SEARCH RESULTS: {}
 
-                """.format(tags))
                 print("""FILTERED EVENTS: {}
 
                 """.format(filtered_events))
 
                 events = filtered_events
-
 
 
         # TODO: add a model for events, create association with SMS model
@@ -200,7 +203,7 @@ class EventResponse():
     def search_tags(self, query):
         """
         searches for tags that match a query
-        returns a list of words split out from tag slug results
+        returns a list of tag strings
         """
         root = 'https://bostonhassle.com/wp-json'
         endpoint = '/tribe/events/v1/tags?search={}'.format(query)
@@ -208,11 +211,9 @@ class EventResponse():
         response = requests.get(url)
         tags = json.loads(response.content.decode('utf-8'))
 
-        # return first matchin tag
         if tags and 'tags' in tags:
-            # 2d list of slugs split by '-'
-            slug_tokens = [t['slug'].split('-') for t in tags['tags']]
-            return list(chain.from_iterable(slug_tokens))
+            # undashify tag slugs
+            return [' '.join(t['slug'].split('-')) for t in tags['tags']]
 
         else:
             return []
