@@ -40,16 +40,14 @@ def save_sms_received(request):
         sms_from = request.POST['From']
         sms_raw = str(request.POST)
 
-        # TODO: Uncomment and figure out why UserSmsProfile does not get created!
+        user = find_or_create_user(sms_from)
 
-        # user, newly_created = find_or_create_user(sms_from)
-        #
-        # # store SMS
-        # Sms.objects.create(
-        #     sms_raw=sms_raw,
-        #     sms_body=sms_body,
-        #     sms_to=sms_to,
-        #     sms_from=sms_from)
+        # store SMS
+        Sms.objects.create(
+            sms_raw=sms_raw,
+            sms_body=sms_body,
+            sms_to=sms_to,
+            sms_from=sms_from)
 
         return sms_to, sms_from, sms_body
 
@@ -57,19 +55,22 @@ def save_sms_received(request):
 
 
 def find_or_create_user(sms_from):
+    find_user = User.objects.filter(username=sms_from)
 
-    ## FIXME: for prototype only!
-    user, newly_created = User.objects.get_or_create(
-        username=sms_from,
-        password=sms_from,
-    )
+    if find_user.count():
+        user = find_user.first()
+    else:
+        user = User.objects.create_user(
+            username=sms_from,
+            password=sms_from,
+        )
 
     user_sms_profile = UserSmsProfile.objects.get(user=user)
 
     user_sms_profile.sms_number = sms_from
     user_sms_profile.save()
 
-    return user, newly_created
+    return user
 
 
 def create_sms_response(sms_to, sms_from, sms_body):

@@ -16,7 +16,7 @@ class Sms(models.Model):
     sms_to = models.CharField(blank=True, null=True, max_length=20)
     sms_from = models.CharField(blank=True, null=True, max_length=20)
     created = models.DateTimeField()
-    
+
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''
 
@@ -25,11 +25,21 @@ class Sms(models.Model):
 
 
     def __unicode__(self):
-        return u"{time} | SMS:{sms_body} | To:{sms_to} | From:{sms_from}".format(
+
+        if self.sms_to == '+13474427753':
+            direction = 'from {}'.format(self.sms_from)
+        elif self.sms_from == '+13474427753':
+            direction = 'to {}'.format(self.sms_to)
+        else:
+            direction = ''
+
+        return u"""
+            "{sms_body}"
+            {direction}  ______  {time}
+            """.format(
             sms_body=self.sms_body,
-            sms_to = self.sms_to,
-            sms_from = self.sms_from,
-            time = tz.localtime(self.created).strftime('%b %d, %Y, %I:%M:%S %p'))
+            direction=direction,
+            time = tz.localtime(self.created).strftime('%m-%d-%Y, %I:%M %p'))
 
     class Meta:
         verbose_name_plural = "SMS received/sent"
@@ -51,6 +61,7 @@ class UserSmsProfile(models.Model):
 
 def create_sms_profile(sender, **kwargs):
     user = kwargs["instance"]
+
     if kwargs["created"]:
         sms_profile = UserSmsProfile(user=user)
         sms_profile.save()

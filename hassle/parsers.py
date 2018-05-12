@@ -133,7 +133,6 @@ class ParseSms:
         # convert list of bigrams to a 1d list of words
         # [(what, is), (is, up), (up, tonight)] -> [what is up tonight]
         if self.bigrams:
-
             from_bigram = [b[0] for b in self.bigrams if b] + [self.bigrams[-1][1]]
             clean_tokens = [t for t in from_bigram if t and t in self.tokens]
         else:
